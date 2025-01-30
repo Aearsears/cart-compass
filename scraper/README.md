@@ -12,6 +12,8 @@ Attributes
 -   Price
 -   User friendly product name
 -   Category
+-   URL
+-   Unit (per lb or per container)
 
 ## Query patterns
 

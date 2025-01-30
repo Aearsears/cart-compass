@@ -3,16 +3,29 @@ from bs4 import BeautifulSoup
 import logging
 import random
 import time
+from playwright.sync_api import sync_playwright
 
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+]
 
 def get_url(url, headers={}):
 
-    headers.update({"User-Agent": "Mozilla/5.0"})
+    headers.update(
+        {
+            "User-Agent": random.choice(USER_AGENTS),
+            "Referer": "https://www.google.com/",
+            "Accept-Language": "en-US,en;q=0.9"
+        })
 
     jitter = random.randint(1, 10)
     time.sleep(jitter)
 
-    return requests.get(url, headers=headers)
+    session = requests.Session()
+    session.headers.update(headers)
+    return session.get(url)
 
 
 logging.basicConfig(level=logging.INFO,
@@ -22,29 +35,44 @@ logging.basicConfig(level=logging.INFO,
 # store in ddb list of urls already scraped for the day
 def scrape_website(url):
     try:
-        # Send a GET request to the website
         response = get_url(url)
-        response.raise_for_status()  # Raise an error for bad status codes
+        response.raise_for_status()
 
-        # Parse the HTML content using BeautifulSoup
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Extract and print the title of the webpage
         title = soup.title.string if soup.title else "No title found"
         print(f"Page Title: {title}")
 
-        # Example: Extract all links from the page
-        links = [a['href'] for a in soup.find_all('a', href=True)]
-        print("Links found:")
-        for link in links[:10]:  # Print first 10 links as a sample
-            print(link)
+        price = soup.select_one('div').get('data-main-price')
+        unit = soup.select_one('div').get('data-variant-price')
+        print(f"{title} at {price}/{unit}")
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching {url}: {e}")
 
 
+
 if __name__ == "__main__":
     logging.info("Starting scraper")
-    website_url = "https://google.com"  # Change this to your target URL
-    scrape_website(website_url)
+    # Change this to your target URL
+    # website_url = "https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024"
+    # scrape_website(website_url)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)  
+        page = browser.new_page(user_agent=random.choice(USER_AGENTS))
+
+        page.goto("https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024")  
+        
+        page.wait_for_load_state("networkidle")  
+        
+
+        user_friendly_product_name = page.query_selector('div[data-product-name]').get_attribute('data-product-name')
+        price = page.query_selector('div[data-main-price]').get_attribute('data-main-price')
+        unit = page.query_selector('div[data-variant-price]').get_attribute('data-variant-price')
+
+        print(f"{user_friendly_product_name} at {price}/{unit}")
+        
+        browser.close()
+
     logging.info("Finished scraper")
