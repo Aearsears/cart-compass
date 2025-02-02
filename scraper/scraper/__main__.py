@@ -1,81 +1,89 @@
-import requests
-from bs4 import BeautifulSoup
 import logging
 import random
 import time
-from playwright.sync_api import sync_playwright
+from datetime import datetime
+from playwright.async_api import async_playwright
+import asyncio
+
+from scraper.DynamoDBClient import DynamoDBClient
+from scraper.Settings import Settings
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
 ]
-
-
-def get_url(url, headers={}):
-
-    headers.update(
-        {
-            "User-Agent": random.choice(USER_AGENTS),
-            "Referer": "https://www.google.com/",
-            "Accept-Language": "en-US,en;q=0.9"
-        })
-
-    jitter = random.randint(1, 10)
-    time.sleep(jitter)
-
-    session = requests.Session()
-    session.headers.update(headers)
-    return session.get(url)
-
+# TODO: initial seeding from urls https://www.superc.ca/en/aisles/*
+URLS = [
+    "https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024",
+    "https://www.superc.ca/en/aisles/beverages/tea-hot-drinks/green-tea/green-tea-bags/p/059749983853",
+    "https://www.superc.ca/en/aisles/dairy-eggs/milk-cream-butter/butter-margarine/salted-butter/p/059749894784"
+]
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-# store in ddb list of urls already scraped for the day
-def scrape_website(url):
-    try:
-        response = get_url(url)
-        response.raise_for_status()
+async def scrape(url, browser, ddbclient):
+    logging.info(f"Visiting {url}")
+    context = await browser.new_context()
+    await context.set_extra_http_headers({"User-Agent": random.choice(USER_AGENTS)})
+    page = await context.new_page()
+    await asyncio.sleep(random.randint(1, 10))
+    await page.goto(url)
+    await page.wait_for_load_state("networkidle")
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+    # TODO: load into ddb
+    upc_element = await page.query_selector(
+        'div[data-product-code]')
+    upc = await upc_element.get_attribute('data-product-code')
 
-        title = soup.title.string if soup.title else "No title found"
-        print(f"Page Title: {title}")
+    category_element = await page.query_selector(
+        'div[data-product-category]')
+    category = await category_element.get_attribute('data-product-category')
 
-        price = soup.select_one('div').get('data-main-price')
-        unit = soup.select_one('div').get('data-variant-price')
-        print(f"{title} at {price}/{unit}")
+    brand_element = await page.query_selector(
+        'div[data-product-brand]')
+    if brand_element:
+        brand = await brand_element.get_attribute('data-product-brand')
+    else:
+        brand = "N/A"
 
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching {url}: {e}")
+    user_friendly_product_name_element = await page.query_selector(
+        'div[data-product-name]')
+    user_friendly_product_name = await user_friendly_product_name_element.get_attribute(
+        'data-product-name')
+
+    price_element = await page.query_selector(
+        'div[data-main-price]')
+    price = await price_element.get_attribute('data-main-price')
+
+    unit_element = await page.query_selector('div[data-variant-price]')
+    if unit_element:
+        unit = await unit_element.get_attribute('data-variant-price')
+    else:
+        unit = "each"
+
+    print(f"{user_friendly_product_name} ({upc}) Brand: {
+          brand} (Category: {category}) at {price}/{unit}")
+
+    await context.close()
 
 
-if __name__ == "__main__":
-    logging.info("Starting scraper")
-    # Change this to your target URL
-    # website_url = "https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024"
-    # scrape_website(website_url)
+async def main(urls, ddbclient):
+    # store in ddb list of urls already scraped for the day
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        await asyncio.gather(*(scrape(url, browser, ddbclient) for url in urls))
+        await browser.close()
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page(user_agent=random.choice(USER_AGENTS))
-
-        page.goto(
-            "https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024")
-
-        page.wait_for_load_state("networkidle")
-
-        user_friendly_product_name = page.query_selector(
-            'div[data-product-name]').get_attribute('data-product-name')
-        price = page.query_selector(
-            'div[data-main-price]').get_attribute('data-main-price')
-        unit = page.query_selector(
-            'div[data-variant-price]').get_attribute('data-variant-price')
-
-        print(f"{user_friendly_product_name} at {price}/{unit}")
-
-        browser.close()
-
-    logging.info("Finished scraper")
+settings = Settings()
+ddbclient = DynamoDBClient(
+    region=settings.region,
+    endpoint=settings.endpoint_url,
+    access_key=settings.aws_access_key_id,
+    secret=settings.aws_secret_access_key
+)
+logging.info("Starting scraper")
+asyncio.run(main(URLS, ddbclient))
+logging.info("Finished scraper")
