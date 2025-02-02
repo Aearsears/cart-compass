@@ -9,6 +9,7 @@ services:
    volumes:
      - "./docker/dynamodb:/home/dynamodblocal/data"
    working_dir: /home/dynamodblocal
+
  app-node:
    depends_on:
      - dynamodb-local

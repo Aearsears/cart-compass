@@ -1,4 +1,5 @@
 import boto3
+from botocore.exceptions import ClientError
 
 
 class DynamoDBClient():
@@ -11,11 +12,14 @@ class DynamoDBClient():
             aws_access_key_id=access_key,
             aws_secret_access_key=secret
         )
-        table = self.client.describe_table(
-            TableName=self.table_name).get("Table")
-
-        if not table:
-            self.create_table()
+        try:
+            table = self.client.describe_table(
+                TableName=self.table_name).get("Table")
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ResourceNotFoundException':
+                self.create_table()
+            else:
+                print(f"Error: {e}")
 
     def create_table(self):
         self.client.create_table(AttributeDefinitions=[
@@ -38,7 +42,8 @@ class DynamoDBClient():
                 'AttributeName': 'Date',
                 'KeyType': 'RANGE'
             },
-        ])
+        ],
+            BillingMode="PAY_PER_REQUEST")
 
     def put(self, item):
         self.client.put_item(TableName=self.table_name, **item)
