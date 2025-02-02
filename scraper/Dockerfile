@@ -12,7 +12,7 @@ FROM base as dev
 ENV PATH=$PATH:/etc/poetry/bin
 
 RUN apt -y update && apt -y upgrade 
-RUN apt install -y --no-install-recommends net-tools iproute2 iputils-ping openssh-client npm
+RUN apt install -y --no-install-recommends net-tools iproute2 iputils-ping openssh-client npm git
 RUN apt autoclean
 
 FROM base as release

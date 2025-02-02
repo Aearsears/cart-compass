@@ -11,6 +11,7 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
 ]
 
+
 def get_url(url, headers={}):
 
     headers.update(
@@ -51,7 +52,6 @@ def scrape_website(url):
         print(f"Error fetching {url}: {e}")
 
 
-
 if __name__ == "__main__":
     logging.info("Starting scraper")
     # Change this to your target URL
@@ -59,20 +59,23 @@ if __name__ == "__main__":
     # scrape_website(website_url)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)  
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page(user_agent=random.choice(USER_AGENTS))
 
-        page.goto("https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024")  
-        
-        page.wait_for_load_state("networkidle")  
-        
+        page.goto(
+            "https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024")
 
-        user_friendly_product_name = page.query_selector('div[data-product-name]').get_attribute('data-product-name')
-        price = page.query_selector('div[data-main-price]').get_attribute('data-main-price')
-        unit = page.query_selector('div[data-variant-price]').get_attribute('data-variant-price')
+        page.wait_for_load_state("networkidle")
+
+        user_friendly_product_name = page.query_selector(
+            'div[data-product-name]').get_attribute('data-product-name')
+        price = page.query_selector(
+            'div[data-main-price]').get_attribute('data-main-price')
+        unit = page.query_selector(
+            'div[data-variant-price]').get_attribute('data-variant-price')
 
         print(f"{user_friendly_product_name} at {price}/{unit}")
-        
+
         browser.close()
 
     logging.info("Finished scraper")
