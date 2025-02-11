@@ -1,14 +1,15 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-    "name": "Python 3",
+    "name": "Python 3 scraper",
     // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
     "build": {
-        "dockerfile": "../scraper/Dockerfile",
+        "dockerfile": "../../scraper/Dockerfile",
         // Update 'VARIANT' to pick a Node version: 16, 14, 12.
         // Append -bullseye or -buster to pin to an OS version.
         // Use -bullseye variants on local arm64/Apple Silicon.
-        "target": "dev"
+        "target": "dev",
+        "context": "../../scraper"
     },
     // "runArgs": ["--network=host"],
     "customizations": {
