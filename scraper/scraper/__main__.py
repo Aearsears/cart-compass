@@ -8,11 +8,6 @@ import asyncio
 from scraper.DynamoDBClient import DynamoDBClient
 from scraper.Settings import Settings
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-]
 # TODO: initial seeding from urls https://www.superc.ca/en/aisles/*
 URLS = [
     "https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024",
@@ -84,6 +79,7 @@ ddbclient = DynamoDBClient(
     access_key=settings.aws_access_key_id,
     secret=settings.aws_secret_access_key
 )
+# TODO: perform full scan on ddb table to get all urls
 logging.info("Starting scraper")
 asyncio.run(main(URLS, ddbclient))
 logging.info("Finished scraper")
