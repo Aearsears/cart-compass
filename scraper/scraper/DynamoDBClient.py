@@ -76,4 +76,4 @@ class DynamoDBClient():
                 raise
 
     def put(self, item):
-        self.client.put_item(TableName=self.table_name, **item)
+        self.client.put_item(TableName=self.table_name, Item=item)
