@@ -1,6 +1,7 @@
 import logging
 import random
 from datetime import datetime
+import time
 from playwright.async_api import async_playwright
 import asyncio
 
@@ -10,9 +11,13 @@ from scraper.Settings import Settings
 # TODO: initial seeding from urls https://www.superc.ca/en/aisles/*
 URLS = [
     "https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024",
+    "https://www.superc.ca/en/aisles/meat-poultry/beef-veal/ground/lean-ground-beef/p/201758",
     "https://www.superc.ca/en/aisles/beverages/tea-hot-drinks/green-tea/green-tea-bags/p/059749983853",
     "https://www.superc.ca/en/aisles/dairy-eggs/milk-cream-butter/butter-margarine/salted-butter/p/059749894784",
+    "https://www.superc.ca/en/aisles/dairy-eggs/packaged-cheese/shredded-cheese/shredded-cheddar-and-pizza-mozzarella-cheese-blend/p/068200477367",
+    "https://www.superc.ca/en/aisles/dairy-eggs/packaged-cheese/shredded-cheese/shredded-mozzarella-cheese/p/059749949316",
     "https://www.superc.ca/en/aisles/fruits-vegetables/fruits/apples-pears/apple/p/4152",
+    "https://www.superc.ca/en/aisles/fruits-vegetables/fruits/berries-cherries/blueberries/p/033383222288",
     "https://www.superc.ca/en/aisles/bread-bakery-products/freshly-baked-bread-baguettes/premiere-moisson/old-fashioned-belgian-loaf/p/029145099519"
 ]
 
@@ -25,11 +30,17 @@ async def scrape(url, browser, ddbclient, settings):
     context = await browser.new_context()
     await context.set_extra_http_headers({"User-Agent": random.choice(settings.user_agents)})
     page = await context.new_page()
-    await asyncio.sleep(random.randint(5, 10))
+    await asyncio.sleep(random.randint(2, 10))
     await page.goto(url)
-    await page.wait_for_load_state("networkidle")
+    try:
+        await page.wait_for_load_state("networkidle", timeout=30000)
+    except Exception as e:
+        # TODO: implement retry logic
+        logging.error(f"Error loading page {url}: {e}")
+        await page.close()
+        await context.close()
+        return
 
-    # TODO: load into ddb
     upc_element = await page.query_selector(
         'div[data-product-code]')
     upc = await upc_element.get_attribute('data-product-code')
@@ -87,6 +98,7 @@ async def scrape(url, browser, ddbclient, settings):
     }
     ddbclient.put(item)
 
+    await page.close()
     await context.close()
 
 
