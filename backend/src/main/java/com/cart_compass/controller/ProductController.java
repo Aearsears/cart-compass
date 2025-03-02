@@ -64,7 +64,13 @@ public class ProductController {
     // Get all products
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
+        // TODO: fix scrape date null
+        // TODO: fix java.lang.ClassCastException
         List<Product> products = productService.scanTable();
+        System.out.println(products.get(0).getScrapeDate());
+        // for (Product product : products) {
+        // System.out.println(product);
+        // }
         return ResponseEntity.ok(products);
     }
 }

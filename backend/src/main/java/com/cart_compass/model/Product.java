@@ -8,7 +8,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttri
 @DynamoDbBean
 public class Product {
     private String UPC;
-    private String Date;
+    private String ScrapeDate;
     private String Category;
     private String Brand;
     private String User_Friendly_Product_Name;
@@ -25,12 +25,12 @@ public class Product {
     }
 
     @DynamoDbSortKey
-    public String getDate() {
-        return Date;
+    public String getScrapeDate() {
+        return ScrapeDate;
     }
 
-    public void setDate(String Date) {
-        this.Date = Date;
+    public void setScrapeDate(String ScrapeDate) {
+        this.ScrapeDate = ScrapeDate;
     }
 
     @DynamoDbAttribute("Category")
@@ -77,4 +77,14 @@ public class Product {
     public void setUnit(String Unit) {
         this.Unit = Unit;
     }
+
+    @Override
+    public String toString() {
+        return "Product [UPC=" + UPC + ", ScrapeDate=" + ScrapeDate + ", Category=" +
+                Category + ", Brand=" + Brand
+                + ", User_Friendly_Product_Name=" + User_Friendly_Product_Name + ", Price=" +
+                Price + ", Unit=" + Unit
+                + "]";
+    }
+
 }
