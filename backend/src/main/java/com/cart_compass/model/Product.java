@@ -11,7 +11,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttri
 @DynamoDbBean
 public class Product {
     private String UPC;
-    private String scrapeDate;
+    private String ScrapeDate;
     private String Category;
     private String Brand;
     private String User_Friendly_Product_Name;
@@ -28,12 +28,13 @@ public class Product {
     }
 
     @DynamoDbSortKey
+    @DynamoDbAttribute("ScrapeDate")
     public String getScrapeDate() {
-        return scrapeDate;
+        return ScrapeDate;
     }
 
-    public void setScrapeDate(String scrapeDate) {
-        this.scrapeDate = scrapeDate;
+    public void setScrapeDate(String ScrapeDate) {
+        this.ScrapeDate = ScrapeDate;
     }
 
     @DynamoDbAttribute("Category")
@@ -83,7 +84,7 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product [UPC=" + UPC + ", ScrapeDate=" + scrapeDate + ", Category=" +
+        return "Product [UPC=" + UPC + ", ScrapeDate=" + ScrapeDate + ", Category=" +
                 Category + ", Brand=" + Brand
                 + ", User_Friendly_Product_Name=" + User_Friendly_Product_Name + ", Price=" +
                 Price + ", Unit=" + Unit
@@ -95,7 +96,7 @@ public class Product {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((UPC == null) ? 0 : UPC.hashCode());
-        result = prime * result + ((scrapeDate == null) ? 0 : scrapeDate.hashCode());
+        result = prime * result + ((ScrapeDate == null) ? 0 : ScrapeDate.hashCode());
         result = prime * result + ((Category == null) ? 0 : Category.hashCode());
         result = prime * result + ((Brand == null) ? 0 : Brand.hashCode());
         result = prime * result + ((User_Friendly_Product_Name == null) ? 0 : User_Friendly_Product_Name.hashCode());
@@ -118,10 +119,10 @@ public class Product {
                 return false;
         } else if (!UPC.equals(other.UPC))
             return false;
-        if (scrapeDate == null) {
-            if (other.scrapeDate != null)
+        if (ScrapeDate == null) {
+            if (other.ScrapeDate != null)
                 return false;
-        } else if (!scrapeDate.equals(other.scrapeDate))
+        } else if (!ScrapeDate.equals(other.ScrapeDate))
             return false;
         if (Category == null) {
             if (other.Category != null)
