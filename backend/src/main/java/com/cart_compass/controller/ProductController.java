@@ -7,12 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/products")
 public class ProductController {
 
     private final ProductService productService;
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
     public ProductController(ProductService productService) {
@@ -65,12 +68,11 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
         // TODO: fix scrape date null
-        // TODO: fix java.lang.ClassCastException
         List<Product> products = productService.scanTable();
-        System.out.println(products.get(0).getScrapeDate());
-        // for (Product product : products) {
-        // System.out.println(product);
-        // }
+        // logger.info(products.get(0).getScrapeDate());
+        for (Product product : products) {
+            System.out.println(product);
+        }
         return ResponseEntity.ok(products);
     }
 }

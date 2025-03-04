@@ -3,12 +3,15 @@ package com.cart_compass.model;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 
 @DynamoDbBean
 public class Product {
     private String UPC;
-    private String ScrapeDate;
+    private String scrapeDate;
     private String Category;
     private String Brand;
     private String User_Friendly_Product_Name;
@@ -26,11 +29,11 @@ public class Product {
 
     @DynamoDbSortKey
     public String getScrapeDate() {
-        return ScrapeDate;
+        return scrapeDate;
     }
 
-    public void setScrapeDate(String ScrapeDate) {
-        this.ScrapeDate = ScrapeDate;
+    public void setScrapeDate(String scrapeDate) {
+        this.scrapeDate = scrapeDate;
     }
 
     @DynamoDbAttribute("Category")
@@ -80,11 +83,72 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product [UPC=" + UPC + ", ScrapeDate=" + ScrapeDate + ", Category=" +
+        return "Product [UPC=" + UPC + ", ScrapeDate=" + scrapeDate + ", Category=" +
                 Category + ", Brand=" + Brand
                 + ", User_Friendly_Product_Name=" + User_Friendly_Product_Name + ", Price=" +
                 Price + ", Unit=" + Unit
                 + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((UPC == null) ? 0 : UPC.hashCode());
+        result = prime * result + ((scrapeDate == null) ? 0 : scrapeDate.hashCode());
+        result = prime * result + ((Category == null) ? 0 : Category.hashCode());
+        result = prime * result + ((Brand == null) ? 0 : Brand.hashCode());
+        result = prime * result + ((User_Friendly_Product_Name == null) ? 0 : User_Friendly_Product_Name.hashCode());
+        result = prime * result + ((Price == null) ? 0 : Price.hashCode());
+        result = prime * result + ((Unit == null) ? 0 : Unit.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Product other = (Product) obj;
+        if (UPC == null) {
+            if (other.UPC != null)
+                return false;
+        } else if (!UPC.equals(other.UPC))
+            return false;
+        if (scrapeDate == null) {
+            if (other.scrapeDate != null)
+                return false;
+        } else if (!scrapeDate.equals(other.scrapeDate))
+            return false;
+        if (Category == null) {
+            if (other.Category != null)
+                return false;
+        } else if (!Category.equals(other.Category))
+            return false;
+        if (Brand == null) {
+            if (other.Brand != null)
+                return false;
+        } else if (!Brand.equals(other.Brand))
+            return false;
+        if (User_Friendly_Product_Name == null) {
+            if (other.User_Friendly_Product_Name != null)
+                return false;
+        } else if (!User_Friendly_Product_Name.equals(other.User_Friendly_Product_Name))
+            return false;
+        if (Price == null) {
+            if (other.Price != null)
+                return false;
+        } else if (!Price.equals(other.Price))
+            return false;
+        if (Unit == null) {
+            if (other.Unit != null)
+                return false;
+        } else if (!Unit.equals(other.Unit))
+            return false;
+        return true;
     }
 
 }
