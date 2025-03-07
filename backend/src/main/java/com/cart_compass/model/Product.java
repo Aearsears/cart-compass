@@ -2,10 +2,9 @@ package com.cart_compass.model;
 
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 
 @DynamoDbBean
@@ -19,6 +18,7 @@ public class Product {
     private String Unit;
 
     @DynamoDbPartitionKey
+    @DynamoDbSecondarySortKey(indexNames = { "UserFriendlyProductNameIndex", "CategoryIndex" })
     public String getUPC() {
         return UPC;
     }
@@ -38,6 +38,7 @@ public class Product {
     }
 
     @DynamoDbAttribute("Category")
+    @DynamoDbSecondaryPartitionKey(indexNames = { "CategoryIndex" })
     public String getCategory() {
         return Category;
     }
@@ -56,6 +57,7 @@ public class Product {
     }
 
     @DynamoDbAttribute("User_Friendly_Product_Name")
+    @DynamoDbSecondaryPartitionKey(indexNames = { "UserFriendlyProductNameIndex" })
     public String getUserFriendlyProductName() {
         return User_Friendly_Product_Name;
     }
