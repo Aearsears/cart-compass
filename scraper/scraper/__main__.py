@@ -1,6 +1,7 @@
 import logging
+from math import log
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 from playwright.async_api import async_playwright
 import asyncio
@@ -71,14 +72,17 @@ async def scrape(url, browser, ddbclient, settings):
     else:
         unit = "each"
 
-    print(f"{user_friendly_product_name} ({upc}) Brand: {
-          brand} (Category: {category}) at {price}/{unit}")
+    logging.info(f"{user_friendly_product_name} ({upc}) Brand: {
+        brand} (Category: {category}) at {price}/{unit}")
+
+    now = datetime.now(tz=timezone.utc).isoformat()
+
     item = {
         "UPC": {
             "S": upc
         },
-        "Date": {
-            "S": datetime.now().isoformat()
+        "ScrapeDate": {
+            "S": now
         },
         "Category": {
             "S": category
