@@ -33,6 +33,14 @@ class DynamoDBClient():
                     {"AttributeName": "UPC", "KeyType": "RANGE"},
                 ],
                 "Projection": {"ProjectionType": "ALL"},
+            },
+            {
+                "IndexName": "SupermarketIndex",
+                "KeySchema": [
+                    {"AttributeName": "SupermarketName", "KeyType": "HASH"},
+                    {"AttributeName": "UPC", "KeyType": "RANGE"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
             }
         ]
         if not self.table_exists():
@@ -75,6 +83,10 @@ class DynamoDBClient():
             ],
             "CategoryIndex": [
                 {"AttributeName": "Category", "AttributeType": "S"},
+                {"AttributeName": "UPC", "AttributeType": "S"}
+            ],
+            "SupermarketIndex": [
+                {"AttributeName": "SupermarketName", "AttributeType": "S"},
                 {"AttributeName": "UPC", "AttributeType": "S"}
             ]
         }

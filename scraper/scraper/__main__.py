@@ -18,7 +18,12 @@ URLS = [
     "https://www.superc.ca/en/aisles/dairy-eggs/packaged-cheese/shredded-cheese/shredded-mozzarella-cheese/p/059749949316",
     "https://www.superc.ca/en/aisles/fruits-vegetables/fruits/apples-pears/apple/p/4152",
     "https://www.superc.ca/en/aisles/fruits-vegetables/fruits/berries-cherries/blueberries/p/033383222288",
-    "https://www.superc.ca/en/aisles/bread-bakery-products/freshly-baked-bread-baguettes/premiere-moisson/old-fashioned-belgian-loaf/p/029145099519"
+    "https://www.superc.ca/en/aisles/bread-bakery-products/freshly-baked-bread-baguettes/premiere-moisson/old-fashioned-belgian-loaf/p/029145099519",
+    "https://www.metro.ca/en/online-grocery/aisles/meat-poultry/beef-veal/ground/lean-ground-beef/p/201710",
+    "https://www.metro.ca/en/online-grocery/aisles/meat-poultry/beef-veal/ground/extra-lean-ground-beef/p/201024",
+    "https://www.metro.ca/en/online-grocery/aisles/fruits-vegetables/fruits/grapes/red-seedless-grapes/p/4023",
+    "https://www.metro.ca/en/online-grocery/aisles/fruits-vegetables/vegetables/broccoli-cauliflower-cabbage/local-broccoli/p/4060",
+    "https://www.metro.ca/en/online-grocery/aisles/fruits-vegetables/fruits/apples-pears/mcintoshapple/p/4152"
 ]
 
 logging.basicConfig(level=logging.INFO,
