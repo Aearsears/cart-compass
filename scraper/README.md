@@ -5,7 +5,12 @@
 Primary Key
 
 -   Parition Key: UPC
--   Sort Key: date
+-   Sort Key: ScrapeDate
+
+Local Secondary Index UPCBySupermarketNameAndDateIndex
+
+-   Parition Key: UPC
+-   Sort Key: SupermarketName#ScrapeDate
 
 TODO: update the sort keys to be more useful in search
 GSI UserFriendlyProductNameIndex
@@ -21,8 +26,10 @@ GSI CategoryIndex
 Attributes
 
 -   Price
+-   SupermarketName
 -   User friendly product name
 -   Category
+-   Brand
 -   URL
 -   Unit (per lb or per container)
 

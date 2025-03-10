@@ -1,8 +1,7 @@
 import logging
-from math import log
+import tldextract
 import random
 from datetime import datetime, timezone
-import time
 from playwright.async_api import async_playwright
 import asyncio
 
@@ -27,6 +26,7 @@ logging.basicConfig(level=logging.INFO,
 
 
 async def scrape(url, browser, ddbclient, settings):
+    # TODO: fix hanging issue on visit
     logging.info(f"Visiting {url}")
     context = await browser.new_context()
     await context.set_extra_http_headers({"User-Agent": random.choice(settings.user_agents)})
@@ -35,75 +35,81 @@ async def scrape(url, browser, ddbclient, settings):
     await page.goto(url)
     try:
         await page.wait_for_load_state("networkidle", timeout=30000)
+
+        upc_element = await page.query_selector(
+            'div[data-product-code]')
+        upc = await upc_element.get_attribute('data-product-code')
+
+        category_element = await page.query_selector(
+            'div[data-product-category]')
+        category = await category_element.get_attribute('data-product-category')
+
+        brand_element = await page.query_selector(
+            'div[data-product-brand]')
+        if brand_element:
+            brand = await brand_element.get_attribute('data-product-brand')
+        else:
+            brand = "N/A"
+
+        user_friendly_product_name_element = await page.query_selector(
+            'div[data-product-name]')
+        user_friendly_product_name = await user_friendly_product_name_element.get_attribute(
+            'data-product-name')
+
+        price_element = await page.query_selector(
+            'div[data-main-price]')
+        price = await price_element.get_attribute('data-main-price')
+
+        unit_element = await page.query_selector('div[data-variant-price]')
+        if unit_element:
+            unit = await unit_element.get_attribute('data-variant-price')
+        else:
+            unit = "each"
+
+        logging.info(f"{user_friendly_product_name} ({upc}) Brand: {
+            brand} (Category: {category}) at {price}/{unit}")
+
+        now = datetime.now(tz=timezone.utc).isoformat()
+        super_market_name = tldextract.extract(url).domain
+        item = {
+            "UPC": {
+                "S": upc
+            },
+            "ScrapeDate": {
+                "S": now
+            },
+            "SupermarketName": {
+                "S": super_market_name
+            },
+            "SupermarketName#ScrapeDate": {
+                "S": f"{super_market_name}#{now}"
+            },
+            "Category": {
+                "S": category
+            },
+            "Brand": {
+                "S": brand
+            },
+            "User_Friendly_Product_Name": {
+                "S": user_friendly_product_name
+            },
+            "Price": {
+                "N": price
+            },
+            "Unit": {
+                "S": unit
+            },
+            "URL": {
+                "S": url
+            }
+        }
+        ddbclient.put(item)
     except Exception as e:
         # TODO: implement retry logic
         logging.error(f"Error loading page {url}: {e}")
+    finally:
         await page.close()
         await context.close()
-        return
-
-    upc_element = await page.query_selector(
-        'div[data-product-code]')
-    upc = await upc_element.get_attribute('data-product-code')
-
-    category_element = await page.query_selector(
-        'div[data-product-category]')
-    category = await category_element.get_attribute('data-product-category')
-
-    brand_element = await page.query_selector(
-        'div[data-product-brand]')
-    if brand_element:
-        brand = await brand_element.get_attribute('data-product-brand')
-    else:
-        brand = "N/A"
-
-    user_friendly_product_name_element = await page.query_selector(
-        'div[data-product-name]')
-    user_friendly_product_name = await user_friendly_product_name_element.get_attribute(
-        'data-product-name')
-
-    price_element = await page.query_selector(
-        'div[data-main-price]')
-    price = await price_element.get_attribute('data-main-price')
-
-    unit_element = await page.query_selector('div[data-variant-price]')
-    if unit_element:
-        unit = await unit_element.get_attribute('data-variant-price')
-    else:
-        unit = "each"
-
-    logging.info(f"{user_friendly_product_name} ({upc}) Brand: {
-        brand} (Category: {category}) at {price}/{unit}")
-
-    now = datetime.now(tz=timezone.utc).isoformat()
-
-    item = {
-        "UPC": {
-            "S": upc
-        },
-        "ScrapeDate": {
-            "S": now
-        },
-        "Category": {
-            "S": category
-        },
-        "Brand": {
-            "S": brand
-        },
-        "User_Friendly_Product_Name": {
-            "S": user_friendly_product_name
-        },
-        "Price": {
-            "N": price
-        },
-        "Unit": {
-            "S": unit
-        }
-    }
-    ddbclient.put(item)
-
-    await page.close()
-    await context.close()
 
 
 async def worker(queue, browser, ddbclient, settings):

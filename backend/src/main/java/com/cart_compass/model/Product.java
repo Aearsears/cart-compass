@@ -11,11 +11,14 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttri
 public class Product {
     private String UPC;
     private String ScrapeDate;
+    private String SupermarketName;
+    private String SupermarketNameAndDate;
     private String Category;
     private String Brand;
     private String User_Friendly_Product_Name;
     private String Price;
     private String Unit;
+    private String URL;
 
     @DynamoDbPartitionKey
     @DynamoDbSecondarySortKey(indexNames = { "UserFriendlyProductNameIndex", "CategoryIndex" })
@@ -37,6 +40,16 @@ public class Product {
         this.ScrapeDate = ScrapeDate;
     }
 
+    @DynamoDbSecondarySortKey(indexNames = { "UPCBySupermarketNameAndDateIndex" })
+    @DynamoDbAttribute("SupermarketName#ScrapeDate")
+    public String getSupermarketNameAndDate() {
+        return SupermarketNameAndDate;
+    }
+
+    public void setSupermarketNameAndDate(String SupermarketNameAndDate) {
+        this.SupermarketNameAndDate = SupermarketNameAndDate;
+    }
+
     @DynamoDbAttribute("Category")
     @DynamoDbSecondaryPartitionKey(indexNames = { "CategoryIndex" })
     public String getCategory() {
@@ -47,15 +60,6 @@ public class Product {
         this.Category = Category;
     }
 
-    @DynamoDbAttribute("Brand")
-    public String getBrand() {
-        return Brand;
-    }
-
-    public void setBrand(String Brand) {
-        this.Brand = Brand;
-    }
-
     @DynamoDbAttribute("User_Friendly_Product_Name")
     @DynamoDbSecondaryPartitionKey(indexNames = { "UserFriendlyProductNameIndex" })
     public String getUserFriendlyProductName() {
@@ -64,6 +68,15 @@ public class Product {
 
     public void setUserFriendlyProductName(String User_Friendly_Product_Name) {
         this.User_Friendly_Product_Name = User_Friendly_Product_Name;
+    }
+
+    @DynamoDbAttribute("Brand")
+    public String getBrand() {
+        return Brand;
+    }
+
+    public void setBrand(String Brand) {
+        this.Brand = Brand;
     }
 
     @DynamoDbAttribute("Price")
@@ -82,6 +95,24 @@ public class Product {
 
     public void setUnit(String Unit) {
         this.Unit = Unit;
+    }
+
+    @DynamoDbAttribute("SupermarketName")
+    public String getSupermarketName() {
+        return SupermarketName;
+    }
+
+    public void setSupermarketName(String supermarketName) {
+        SupermarketName = supermarketName;
+    }
+
+    @DynamoDbAttribute("URL")
+    public String getURL() {
+        return URL;
+    }
+
+    public void setURL(String uRL) {
+        URL = uRL;
     }
 
     @Override

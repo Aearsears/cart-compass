@@ -82,6 +82,7 @@ class DynamoDBClient():
         logging.info(
             "⌛ GSIs are being created... This may take several minutes.")
         for gsi in missing_gsis:
+            # TODO: fix not waiting for gsi to be completed
             response = self.client.update_table(
                 TableName=self.table_name,
                 AttributeDefinitions=attribute_definitions[gsi["IndexName"]],
@@ -128,6 +129,10 @@ class DynamoDBClient():
                     'AttributeName': 'ScrapeDate',
                     'AttributeType': 'S'
                 },
+                {
+                    'AttributeName': 'SupermarketName#ScrapeDate',
+                    'AttributeType': 'S'
+                },
             ],
                 TableName=self.table_name,
                 KeySchema=[
@@ -138,6 +143,24 @@ class DynamoDBClient():
                 {
                     'AttributeName': 'ScrapeDate',
                     'KeyType': 'RANGE'
+                },
+            ],
+                LocalSecondaryIndexes=[
+                {
+                    'IndexName': 'UPCBySupermarketNameAndDateIndex',
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'UPC',
+                            'KeyType': 'HASH'
+                        },
+                        {
+                            'AttributeName': 'SupermarketName#ScrapeDate',
+                            'KeyType': 'RANGE'
+                        },
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'ALL',
+                    }
                 },
             ],
                 BillingMode="PAY_PER_REQUEST")
