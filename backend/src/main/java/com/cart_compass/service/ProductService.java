@@ -34,6 +34,7 @@ public class ProductService {
     private final DynamoDbTable<Product> productTable;
     private final DynamoDbIndex<Product> categoryIndex;
     private final DynamoDbIndex<Product> userFriendlyProductNameIndex;
+    private final DynamoDbIndex<Product> UPCBySupermarketNameAndDateIndex;
 
     @Autowired
     public ProductService(DynamoDbEnhancedClient dynamoDbEnchancedClient) {
@@ -41,6 +42,7 @@ public class ProductService {
                 TableSchema.fromBean(Product.class));
         this.categoryIndex = productTable.index("CategoryIndex");
         this.userFriendlyProductNameIndex = productTable.index("UserFriendlyProductNameIndex");
+        this.UPCBySupermarketNameAndDateIndex = productTable.index("UPCBySupermarketNameAndDateIndex");
     }
 
     // Method to add a product
@@ -80,15 +82,10 @@ public class ProductService {
         QueryEnhancedRequest queryRequest = QueryEnhancedRequest.builder()
                 .queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue(productName)))
                 .build();
-        List<Product> results = new ArrayList<>();
+
         SdkIterable<Page<Product>> response = userFriendlyProductNameIndex.query(queryRequest);
 
-        response.stream().forEach((page) -> {
-            page.items().stream().forEach((product) -> {
-                results.add(product);
-            });
-        });
-        return results;
+        return response.stream().flatMap(page -> page.items().stream()).collect(Collectors.toList());
     }
 
     // Method to search for a product by name using the GSI CategoryIndex
@@ -97,14 +94,21 @@ public class ProductService {
                 .queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue(category)))
                 .build();
 
-        List<Product> results = new ArrayList<>();
         SdkIterable<Page<Product>> response = categoryIndex.query(queryRequest);
 
-        response.stream().forEach((page) -> {
-            page.items().stream().forEach((product) -> {
-                results.add(product);
-            });
-        });
-        return results;
+        return response.stream().flatMap(page -> page.items().stream()).collect(Collectors.toList());
+    }
+
+    // Search for prices of a product (by UPC) across different supermarkets
+    public List<Product> getPricesByUPC(String upc) {
+        // Query for the product by UPC
+        QueryEnhancedRequest queryRequest = QueryEnhancedRequest.builder()
+                .queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue(upc)))
+                .scanIndexForward(false)
+                .build();
+
+        SdkIterable<Page<Product>> response = UPCBySupermarketNameAndDateIndex.query(queryRequest);
+
+        return response.stream().flatMap(page -> page.items().stream()).collect(Collectors.toList());
     }
 }
