@@ -1,6 +1,9 @@
 package com.cart_compass.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +31,8 @@ public class CompareController {
     }
 
     // Get a product by UPC
-    @GetMapping("/{upc}")
-    public ResponseEntity<List<Product>> compareSingleProductByUPC(@PathVariable String upc) {
+    @GetMapping("")
+    public ResponseEntity<List<Product>> compareSingleProductByUPC(@RequestParam("upc") String upc) {
         List<Product> product = productService.getPricesByUPC(upc);
         if (product != null) {
             return ResponseEntity.ok(product);
@@ -38,10 +41,15 @@ public class CompareController {
         }
     }
 
-    @GetMapping("/compare/basket")
-    void compareBasket(@RequestParam("products") String[] products) {
-        /*
-         * Example: /compare/basket?products=milk,bread,eggs
-         */
+    // Compare multiple products and return a map of supermarket to their total cost
+    // Example: /compare/basket?products=milk,bread,eggs
+    @GetMapping("/basket")
+    public ResponseEntity<Map<String, Double>> compareBasket(@RequestParam("upcs") String[] products) {
+        Map<String, Double> prices = productService.calculateTotalCost(new ArrayList<String>(Arrays.asList(products)));
+        if (prices != null) {
+            return ResponseEntity.ok(prices);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

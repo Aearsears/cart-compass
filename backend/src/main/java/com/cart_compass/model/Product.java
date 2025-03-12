@@ -5,6 +5,10 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 
 @DynamoDbBean
@@ -34,6 +38,10 @@ public class Product {
     @DynamoDbAttribute("ScrapeDate")
     public String getScrapeDate() {
         return ScrapeDate;
+    }
+
+    public OffsetDateTime getScrapeDateDateTime() {
+        return OffsetDateTime.parse(ScrapeDate, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 
     public void setScrapeDate(String ScrapeDate) {

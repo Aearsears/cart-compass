@@ -1,7 +1,9 @@
 package com.cart_compass.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,4 +128,54 @@ public class ProductService {
 
         return response.stream().flatMap(page -> page.items().stream()).collect(Collectors.toList());
     }
+
+    // Method to compare multiple products and return a map of supermarket to their
+    // total cost
+    public Map<String, Double> calculateTotalCost(List<String> upcs) {
+        Map<String, List<Product>> supermarketProducts = new HashMap<>();
+        Map<String, Double> supermarketTotals = new HashMap<>();
+
+        for (String upc : upcs) {
+            QueryEnhancedRequest queryRequest = QueryEnhancedRequest.builder()
+                    .queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue(upc)))
+                    .build();
+
+            SdkIterable<Page<Product>> response = UPCBySupermarketNameAndDateIndex.query(queryRequest);
+
+            List<Product> products = response
+                    .stream()
+                    .flatMap(page -> page.items().stream())
+                    .collect(Collectors.toList());
+
+            for (Product p : products) {
+                supermarketProducts.putIfAbsent(p.getSupermarketName(), new ArrayList<>());
+                supermarketProducts.get(p.getSupermarketName()).add(p);
+            }
+
+        }
+        // dedupe products
+        for (String supermarket : supermarketProducts.keySet()) {
+            List<Product> products = supermarketProducts.get(supermarket);
+            Map<String, Product> dedupedProductsMin = new HashMap<>();
+            for (Product product : products) {
+                dedupedProductsMin.putIfAbsent(product.getUserFriendlyProductName(), product);
+                if (dedupedProductsMin.get(product.getUserFriendlyProductName()).getScrapeDateDateTime()
+                        .isBefore(product.getScrapeDateDateTime())) {
+                    dedupedProductsMin.put(product.getUserFriendlyProductName(), product);
+                }
+            }
+            supermarketProducts.put(supermarket, new ArrayList<>(dedupedProductsMin.values()));
+        }
+        for (Map.Entry<String, List<Product>> entry : supermarketProducts.entrySet()) {
+            for (Product product : entry.getValue()) {
+                supermarketTotals.put(
+                        entry.getKey(),
+                        supermarketTotals.getOrDefault(product.getSupermarketName(), 0.0)
+                                + Double.parseDouble(product.getPrice()));
+            }
+        }
+
+        return supermarketTotals;
+    }
+
 }

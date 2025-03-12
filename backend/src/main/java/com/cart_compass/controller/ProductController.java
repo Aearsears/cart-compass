@@ -30,6 +30,7 @@ public class ProductController {
     }
 
     // Get a product by UPC
+    // TODO: fix query, need sort key
     @GetMapping("/{upc}")
     public ResponseEntity<Product> getProductByUPC(@PathVariable String upc) {
         Product product = productService.getProductByUPC(upc);
