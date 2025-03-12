@@ -35,6 +35,7 @@ public class ProductService {
     private final DynamoDbIndex<Product> categoryIndex;
     private final DynamoDbIndex<Product> userFriendlyProductNameIndex;
     private final DynamoDbIndex<Product> UPCBySupermarketNameAndDateIndex;
+    private final DynamoDbIndex<Product> supermarketIndex;
 
     @Autowired
     public ProductService(DynamoDbEnhancedClient dynamoDbEnchancedClient) {
@@ -43,6 +44,7 @@ public class ProductService {
         this.categoryIndex = productTable.index("CategoryIndex");
         this.userFriendlyProductNameIndex = productTable.index("UserFriendlyProductNameIndex");
         this.UPCBySupermarketNameAndDateIndex = productTable.index("UPCBySupermarketNameAndDateIndex");
+        this.supermarketIndex = productTable.index("SupermarketIndex");
     }
 
     // Method to add a product
@@ -108,6 +110,19 @@ public class ProductService {
                 .build();
 
         SdkIterable<Page<Product>> response = UPCBySupermarketNameAndDateIndex.query(queryRequest);
+
+        return response.stream().flatMap(page -> page.items().stream()).collect(Collectors.toList());
+    }
+
+    // Search for products by supermarket name
+    public List<Product> getProductsBySupermarketName(String name) {
+        // Query for the product by UPC
+        QueryEnhancedRequest queryRequest = QueryEnhancedRequest.builder()
+                .queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue(name)))
+                .scanIndexForward(false)
+                .build();
+
+        SdkIterable<Page<Product>> response = supermarketIndex.query(queryRequest);
 
         return response.stream().flatMap(page -> page.items().stream()).collect(Collectors.toList());
     }

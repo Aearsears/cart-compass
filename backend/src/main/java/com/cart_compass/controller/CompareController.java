@@ -20,7 +20,7 @@ import com.cart_compass.service.ProductService;
 public class CompareController {
 
     private final ProductService productService;
-    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
+    private static final Logger logger = LoggerFactory.getLogger(CompareController.class);
 
     @Autowired
     public CompareController(ProductService productService) {

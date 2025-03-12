@@ -10,7 +10,8 @@ WORKDIR /app
 RUN apk add --no-cache \
     maven \
     git \
-    curl
+    curl \
+    jq
 
 # Copy project files
 COPY . .

@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/search")
 public class SearchController {
     private final ProductService productService;
-    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
+    private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
 
     @Autowired
     public SearchController(ProductService productService) {

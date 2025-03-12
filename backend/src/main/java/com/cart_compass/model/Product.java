@@ -21,7 +21,7 @@ public class Product {
     private String URL;
 
     @DynamoDbPartitionKey
-    @DynamoDbSecondarySortKey(indexNames = { "UserFriendlyProductNameIndex", "CategoryIndex" })
+    @DynamoDbSecondarySortKey(indexNames = { "UserFriendlyProductNameIndex", "CategoryIndex", "SupermarketIndex" })
     public String getUPC() {
         return UPC;
     }
@@ -98,6 +98,7 @@ public class Product {
     }
 
     @DynamoDbAttribute("SupermarketName")
+    @DynamoDbSecondaryPartitionKey(indexNames = { "SupermarketIndex" })
     public String getSupermarketName() {
         return SupermarketName;
     }
