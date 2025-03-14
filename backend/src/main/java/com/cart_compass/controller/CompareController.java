@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +43,12 @@ public class CompareController {
     }
 
     // Compare multiple products and return a map of supermarket to their total cost
-    // Example: /compare/basket?products=milk,bread,eggs
+    // Example: /compare/basket?upcs=4152
+    // sortByProduct is a flag to sort the products by their cheapest price and its
+    // corresponding supermarket
     @GetMapping("/basket")
-    public ResponseEntity<Map<String, Double>> compareBasket(@RequestParam("upcs") String[] products) {
+    public ResponseEntity<Map<String, Double>> compareBasket(@RequestParam("upcs") String[] products,
+            @RequestParam Optional<Boolean> sortByProduct) {
         Map<String, Double> prices = productService.calculateTotalCost(new ArrayList<String>(Arrays.asList(products)));
         if (prices != null) {
             return ResponseEntity.ok(prices);
