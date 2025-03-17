@@ -1,9 +1,13 @@
 package com.cart_compass.service;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,4 +182,61 @@ public class ProductService {
         return supermarketTotals;
     }
 
+    public Map<String, List<Map<String, Double>>> getPricesGroupedByProduct(List<String> upcs) {
+        List<Product> products = new ArrayList<>();
+        Map<String, Product> productMap = new HashMap<>();
+
+        for (String upc : upcs) {
+            QueryEnhancedRequest queryRequest = QueryEnhancedRequest.builder()
+                    .queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue(upc)))
+                    .build();
+
+            SdkIterable<Page<Product>> response = UPCBySupermarketNameAndDateIndex.query(queryRequest);
+
+            response
+                    .stream()
+                    .flatMap(page -> page.items().stream())
+                    .forEach(product -> {
+                        String key = product.toString();
+                        Product existingProduct = productMap.get(key);
+
+                        // If the product is not in the map or if the scraped date is more recent,
+                        // update it
+                        if (existingProduct == null
+                                || isMoreRecent(existingProduct.getScrapeDate(), product.getScrapeDate())) {
+                            productMap.put(key, product);
+                        }
+                    });
+        }
+
+        // Convert the map values to a list of unique products
+        products.addAll(productMap.values());
+        for (Product p : products) {
+            logger.info(p.toStringDebug());
+        }
+        // Result map: Product -> List of (Supermarket -> Price)
+        Map<String, List<Map<String, Double>>> groupedProducts = new HashMap<>();
+
+        for (Product product : products) {
+            groupedProducts
+                    .computeIfAbsent(product.toStringNameAndDate(), k -> new ArrayList<>()) // Initialize list if not
+                                                                                            // present
+                    .add(Map.of(product.getSupermarketName(), Double.parseDouble(product.getPrice())));
+        }
+
+        // Sort the supermarket prices for each product
+        for (List<Map<String, Double>> priceList : groupedProducts.values()) {
+            priceList.sort(Comparator.comparing(m -> m.values().iterator().next())); // Sort by price
+        }
+
+        return groupedProducts;
+    }
+
+    private boolean isMoreRecent(String existingScrapeDate, String newScrapeDate) {
+        // Convert both to OffsetDateTime and compare
+        OffsetDateTime existingDate = OffsetDateTime.parse(existingScrapeDate, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        OffsetDateTime newDate = OffsetDateTime.parse(newScrapeDate, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+        return newDate.isAfter(existingDate);
+    }
 }

@@ -47,13 +47,23 @@ public class CompareController {
     // sortByProduct is a flag to sort the products by their cheapest price and its
     // corresponding supermarket
     @GetMapping("/basket")
-    public ResponseEntity<Map<String, Double>> compareBasket(@RequestParam("upcs") String[] products,
-            @RequestParam Optional<Boolean> sortByProduct) {
-        Map<String, Double> prices = productService.calculateTotalCost(new ArrayList<String>(Arrays.asList(products)));
-        if (prices != null) {
-            return ResponseEntity.ok(prices);
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> compareBasket(@RequestParam("upcs") String[] products,
+            @RequestParam(value = "sortByProduct", required = false, defaultValue = "false") Boolean sortByProduct) {
+        List<String> productList = new ArrayList<String>(Arrays.asList(products));
+
+        boolean sort = (sortByProduct != null) ? sortByProduct : false;
+        logger.info("sortByProduct: " + sort);
+        if (sort) { // If sortByProduct is true, return product-wise price comparison
+            Map<String, List<Map<String, Double>>> productComparison = productService
+                    .getPricesGroupedByProduct(productList);
+            return ResponseEntity.ok(productComparison);
+        } else { // Default: return total cost per supermarket
+            Map<String, Double> prices = productService.calculateTotalCost(productList);
+            if (prices != null) {
+                return ResponseEntity.ok(prices);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
         }
     }
 }

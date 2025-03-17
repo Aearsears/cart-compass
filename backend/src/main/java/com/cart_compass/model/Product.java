@@ -126,11 +126,20 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product [UPC=" + UPC + ", ScrapeDate=" + ScrapeDate + ", Category=" +
-                Category + ", Brand=" + Brand
-                + ", User_Friendly_Product_Name=" + User_Friendly_Product_Name + ", Price=" +
-                Price + ", Unit=" + Unit
-                + "]";
+        return User_Friendly_Product_Name + "," + SupermarketName + ","
+                + OffsetDateTime.parse(ScrapeDate, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDate().toString();
+
+    }
+
+    public String toStringNameAndDate() {
+        return User_Friendly_Product_Name + ","
+                + OffsetDateTime.parse(ScrapeDate, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDate().toString();
+
+    }
+
+    public String toStringDebug() {
+        return UPC + "," + ScrapeDate + "," + SupermarketName + "," + Category + "," + Brand + ","
+                + User_Friendly_Product_Name + "," + Price + "," + Unit + "," + URL;
     }
 
     @Override
