@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Input, List, ListItem } from '@shadcn/ui';
+import { Button } from '@/components/ui/button';
 
 function ShoppingList({ shoppingList, setShoppingList }) {
     const [quantities, setQuantities] = useState([]);
@@ -33,16 +35,16 @@ function ShoppingList({ shoppingList, setShoppingList }) {
     return (
         <div>
             <h2 className="text-lg font-bold mt-6">Shopping List</h2>
-            <ul>
+            <List>
                 {shoppingList.map((item, index) => (
-                    <li
+                    <ListItem
                         key={index}
                         className="border p-2 my-2 flex justify-between">
                         <div>
                             {item.store}: ${item.price.toFixed(2)}
                         </div>
                         <div className="flex items-center">
-                            <input
+                            <Input
                                 type="number"
                                 value={quantities[index] || 1}
                                 min="1"
@@ -51,15 +53,16 @@ function ShoppingList({ shoppingList, setShoppingList }) {
                                 }
                                 className="border px-2 py-1 w-16 text-center"
                             />
-                            <button
-                                className="bg-red-500 text-white px-2 py-1 ml-2"
+                            <Button
+                                color="red"
+                                className="ml-2"
                                 onClick={() => removeFromList(index)}>
                                 Remove
-                            </button>
+                            </Button>
                         </div>
-                    </li>
+                    </ListItem>
                 ))}
-            </ul>
+            </List>
             <h3 className="font-bold mt-4">Total: ${totalCost.toFixed(2)}</h3>
         </div>
     );
