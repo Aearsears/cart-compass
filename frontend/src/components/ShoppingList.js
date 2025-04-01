@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Input, List, ListItem } from '@shadcn/ui';
-import { Button } from '@/components/ui/button';
+import { Button } from './ui/button';
+import { List } from './ui/List';
+import { ListItem } from './ui/ListItem';
+import { Input } from './ui/input';
 
 function ShoppingList({ shoppingList, setShoppingList }) {
     const [quantities, setQuantities] = useState([]);
